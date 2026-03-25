@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Bags Creator Trust Score",
+  title: "BagsProof",
   description: "On-chain reputation oracle for Bags.fm creators",
 };
 

@@ -589,7 +589,7 @@ export default function BagsTrustScore() {
                   textTransform: "uppercase",
                 }}
               >
-                bags.fm · hackathon submission
+                bags.fm · BagsProof
               </div>
             </div>
           </div>
@@ -606,7 +606,7 @@ export default function BagsTrustScore() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            Creator Trust Score
+            BagsProof
           </h1>
           <p
             style={{
@@ -1036,7 +1036,7 @@ export default function BagsTrustScore() {
               letterSpacing: "0.1em",
             }}
           >
-            BAGS HACKATHON · Q1 2026 · CREATOR TRUST SCORE
+            BAGSPROOF · Q1 2026 · ON-CHAIN REPUTATION ORACLE
           </div>
           <div style={{ display: "flex", gap: 16 }}>
             {["Bags API", "Fee Sharing", "Social Finance"].map((tag) => (
