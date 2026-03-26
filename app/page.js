@@ -309,22 +309,37 @@ export default function BagsTrustScore() {
     setActiveResult(scoreCreator(generateCreatorProfile(first.wallet)));
   }, []);
 
-  const handleLookup = async (wallet = inputWallet.trim()) => {
-    if (!wallet) return;
+  const handleLookup = async (input = inputWallet.trim()) => {
+    if (!input) return;
     setLoading(true);
     try {
+      let wallet = input;
+
+      // Detect @handle and resolve to wallet
+      if (input.startsWith("@") || (!input.includes("...") && input.length < 32)) {
+        const handle = input.replace(/^@/, "");
+        const lookupRes = await fetch(`/api/lookup?handle=${encodeURIComponent(handle)}`);
+        const lookupData = await lookupRes.json();
+        if (lookupRes.ok && lookupData.wallet) {
+          wallet = lookupData.wallet;
+          setInputWallet(wallet);
+        } else {
+          setActiveResult(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       const res = await fetch(`/api/score?wallet=${encodeURIComponent(wallet)}`);
       const data = await res.json();
       if (res.ok && data.score !== undefined) {
         setActiveResult({ ...data, isLive: data.source === "live" });
       } else {
-        // API keys not configured — fall back to mock
         const profile = generateCreatorProfile(wallet);
         setActiveResult({ ...scoreCreator(profile), isLive: false });
       }
     } catch {
-      // Network error — fall back to mock
-      const profile = generateCreatorProfile(wallet);
+      const profile = generateCreatorProfile(input);
       setActiveResult({ ...scoreCreator(profile), isLive: false });
     } finally {
       setLoading(false);
@@ -484,7 +499,7 @@ export default function BagsTrustScore() {
                   textTransform: "uppercase",
                 }}
               >
-                Lookup wallet
+                Lookup wallet or @handle
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -492,7 +507,7 @@ export default function BagsTrustScore() {
                   value={inputWallet}
                   onChange={(e) => setInputWallet(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLookup()}
-                  placeholder="Paste wallet address..."
+                  placeholder="Wallet or @twitter..."
                   style={{
                     flex: 1,
                     background: "rgba(255,255,255,0.04)",
