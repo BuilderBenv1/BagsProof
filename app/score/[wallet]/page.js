@@ -158,6 +158,43 @@ export default async function ScorePage({ params }) {
           </div>
         </div>
 
+        {/* How to improve */}
+        {(() => {
+          const tips = [];
+          if (!profile.socialLinked)
+            tips.push({ text: "Link your Twitter or GitHub", pts: "+5 pts", color: "#00ff88", detail: "Verify your identity via Bags social provider" });
+          if (signals.graduationRate && signals.graduationRate.score < 20)
+            tips.push({ text: "Graduate more tokens", pts: `+${20 - signals.graduationRate.score} pts potential`, color: "#7fffb0", detail: "Tokens that reach graduation boost your score significantly" });
+          if (profile.top10HolderPct > 70)
+            tips.push({ text: "Improve holder distribution", pts: `+${Math.min(15, Math.floor((profile.top10HolderPct - 40) / 10) * 5)} pts potential`, color: "#f0e060", detail: "Wider token distribution among holders signals healthier markets" });
+          if (profile.ruggedLaunches > 0)
+            tips.push({ text: "Avoid abandoned launches", pts: `+${Math.min(10, profile.ruggedLaunches * 4)} pts recoverable`, color: "#ffa040", detail: "Each suspected rug reduces your trust score" });
+          if (profile.walletAgeDays < 180)
+            tips.push({ text: "Build wallet history", pts: "+3-6 pts over time", color: "#7fffb0", detail: "Older wallets score higher — consistency matters" });
+          if (score >= 80)
+            tips.push({ text: "Maintain your AAA rating", pts: "Top tier", color: "#00ff88", detail: "Keep graduating tokens and maintaining healthy holder distribution" });
+          if (tips.length === 0) return null;
+          return (
+            <div style={{ padding: 20, borderRadius: 14, border: "1px solid rgba(0,255,136,0.1)", background: "rgba(0,255,136,0.02)", marginBottom: 20 }}>
+              <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(0,255,136,0.5)", textTransform: "uppercase", marginBottom: 14 }}>
+                How to improve your score
+              </div>
+              {tips.map((tip) => (
+                <div key={tip.text} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                  <span style={{ color: tip.color, fontSize: 13, lineHeight: 1, marginTop: 2 }}>&#x2191;</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{tip.text}</span>
+                      <span style={{ fontSize: 10, color: tip.color, fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>{tip.pts}</span>
+                    </div>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{tip.detail}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Footer */}
         <div style={{ marginTop: 32, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>

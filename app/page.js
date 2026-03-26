@@ -365,7 +365,7 @@ export default function BagsTrustScore() {
         overflow: "hidden",
       }}
     >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@600;800&display=swap'); * { box-sizing: border-box; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; } input::placeholder { color: rgba(255,255,255,0.2); } input:focus { outline: none; } @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } } @keyframes fadeSlideIn { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes scanline { 0% { top: -10%; } 100% { top: 110%; } }`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@600;800&display=swap'); * { box-sizing: border-box; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; } input::placeholder { color: rgba(255,255,255,0.2); } input:focus { outline: none; } @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } } @keyframes fadeSlideIn { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes scanline { 0% { top: -10%; } 100% { top: 110%; } } @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr !important; } .nav-links { flex-wrap: wrap; } }`}</style>
       <div
         style={{
           position: "fixed",
@@ -463,16 +463,40 @@ export default function BagsTrustScore() {
             On-chain reputation oracle for Bags.fm creators. 7 signals.
             Composite trust score. No guesswork.
           </p>
-          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+          <div className="nav-links" style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+            <button
+              onClick={async () => {
+                try {
+                  const provider = window?.phantom?.solana || window?.solana;
+                  if (!provider?.isPhantom) {
+                    window.open("https://phantom.app/", "_blank");
+                    return;
+                  }
+                  const resp = await provider.connect();
+                  const wallet = resp.publicKey.toString();
+                  setInputWallet(wallet);
+                  handleLookup(wallet);
+                } catch (err) {
+                  console.error("Wallet connect:", err);
+                }
+              }}
+              style={{ padding: "8px 16px", borderRadius: 6, background: "linear-gradient(135deg, rgba(171,56,255,0.15) 0%, rgba(0,255,136,0.15) 100%)", border: "1px solid rgba(171,56,255,0.3)", color: "#ab38ff", fontSize: 12, fontWeight: 700, fontFamily: "'Space Mono', monospace", cursor: "pointer" }}
+            >
+              Check My Score
+            </button>
             <Link href="/leaderboard" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(0,255,136,0.1)", border: "1px solid rgba(0,255,136,0.25)", color: "#00ff88", fontSize: 12, fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>
               Leaderboard
             </Link>
             <Link href="/embed" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'Space Mono', monospace" }}>
               Embed Badge
             </Link>
+            <Link href="/api-docs" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'Space Mono', monospace" }}>
+              API Docs
+            </Link>
           </div>
         </div>
         <div
+          className="main-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "300px 1fr",
@@ -871,6 +895,44 @@ export default function BagsTrustScore() {
                     )}
                 </div>
               </div>
+              {/* How to improve */}
+              {(() => {
+                const tips = [];
+                const p = activeResult.profile;
+                const s = activeResult.signals;
+                if (!p.socialLinked)
+                  tips.push({ text: "Link your Twitter or GitHub", pts: "+5 pts", color: "#00ff88", detail: "Verify your identity via Bags social provider" });
+                if (s.graduationRate && s.graduationRate.score < 20)
+                  tips.push({ text: "Graduate more tokens", pts: `+${20 - s.graduationRate.score} pts potential`, color: "#7fffb0", detail: "Tokens that reach graduation boost your score significantly" });
+                if (p.top10HolderPct > 70)
+                  tips.push({ text: "Improve holder distribution", pts: `+${Math.min(15, Math.floor((p.top10HolderPct - 40) / 10) * 5)} pts potential`, color: "#f0e060", detail: "Wider token distribution among holders signals healthier markets" });
+                if (p.ruggedLaunches > 0)
+                  tips.push({ text: "Avoid abandoned launches", pts: `+${Math.min(10, p.ruggedLaunches * 4)} pts recoverable`, color: "#ffa040", detail: "Each suspected rug reduces your trust score" });
+                if (p.walletAgeDays < 180)
+                  tips.push({ text: "Build wallet history", pts: "+3-6 pts over time", color: "#7fffb0", detail: "Older wallets score higher — consistency matters" });
+                if (activeResult.score >= 80)
+                  tips.push({ text: "Maintain your AAA rating", pts: "Top tier", color: "#00ff88", detail: "Keep graduating tokens and maintaining healthy holder distribution" });
+                if (tips.length === 0) return null;
+                return (
+                  <div style={{ padding: 20, borderRadius: 14, border: "1px solid rgba(0,255,136,0.1)", background: "rgba(0,255,136,0.02)", marginTop: 16 }}>
+                    <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(0,255,136,0.5)", textTransform: "uppercase", marginBottom: 14 }}>
+                      How to improve your score
+                    </div>
+                    {tips.map((tip) => (
+                      <div key={tip.text} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                        <span style={{ color: tip.color, fontSize: 13, lineHeight: 1, marginTop: 2 }}>&#x2191;</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{tip.text}</span>
+                            <span style={{ fontSize: 10, color: tip.color, fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>{tip.pts}</span>
+                          </div>
+                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{tip.detail}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           )}
           {loading && (
