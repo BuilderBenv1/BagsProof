@@ -492,15 +492,26 @@ export default function BagsTrustScore() {
     setActiveResult(scoreCreator(generateCreatorProfile(first.wallet)));
   }, []);
 
-  const handleLookup = (wallet = inputWallet.trim()) => {
+  const handleLookup = async (wallet = inputWallet.trim()) => {
     if (!wallet) return;
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch(`/api/score?wallet=${encodeURIComponent(wallet)}`);
+      const data = await res.json();
+      if (res.ok && data.score !== undefined) {
+        setActiveResult({ ...data, isLive: data.source === "live" });
+      } else {
+        // API keys not configured — fall back to mock
+        const profile = generateCreatorProfile(wallet);
+        setActiveResult({ ...scoreCreator(profile), isLive: false });
+      }
+    } catch {
+      // Network error — fall back to mock
       const profile = generateCreatorProfile(wallet);
-      const result = scoreCreator(profile);
-      setActiveResult(result);
+      setActiveResult({ ...scoreCreator(profile), isLive: false });
+    } finally {
       setLoading(false);
-    }, 900);
+    }
   };
 
   const handleDemoSelect = (d) => {
@@ -811,8 +822,27 @@ export default function BagsTrustScore() {
                     size={130}
                   />
                   <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ marginBottom: 12 }}>
+                    <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <TrustBadge tier={activeResult.tier} />
+                      {activeResult.isLive && (
+                        <div style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "4px 10px", borderRadius: 5,
+                          background: "rgba(0,200,255,0.08)",
+                          border: "1px solid rgba(0,200,255,0.2)",
+                        }}>
+                          <div style={{
+                            width: 6, height: 6, borderRadius: "50%",
+                            background: "#00c8ff",
+                            animation: "pulse 1.5s ease-in-out infinite",
+                          }} />
+                          <span style={{
+                            fontSize: 10, color: "#00c8ff",
+                            fontFamily: "'Space Mono', monospace",
+                            letterSpacing: "0.12em",
+                          }}>LIVE DATA</span>
+                        </div>
+                      )}
                     </div>
                     <div
                       style={{
