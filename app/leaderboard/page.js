@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { generateLeaderboard } from "../../lib/scoring";
+import { isVerified } from "../../lib/proof-token";
 import Link from "next/link";
 
 function RankBadge({ rank }) {
@@ -91,8 +92,9 @@ export default function LeaderboardPage() {
                   transitionDelay: `${i * 20}ms`, transitionProperty: "all", transitionDuration: "0.4s",
                 }}>
                   <div><RankBadge rank={entry.rank} /></div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: isTop3 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.7)", fontFamily: "'Space Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 12 }}>
-                    {entry.wallet.slice(0, 4)}...{entry.wallet.slice(-4)}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: isTop3 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.7)", fontFamily: "'Space Mono', monospace", overflow: "hidden", whiteSpace: "nowrap", paddingRight: 12 }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{entry.wallet.slice(0, 4)}...{entry.wallet.slice(-4)}</span>
+                    {isVerified(entry.wallet) && <span style={{ fontSize: 10, color: "#ab38ff", flexShrink: 0 }} title="Verified">&#128737;</span>}
                   </div>
                   <div>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 5, border: `1px solid ${entry.tier.color}40`, background: entry.tier.bg, fontSize: 11, fontWeight: 700, color: entry.tier.color, letterSpacing: "0.1em", fontFamily: "'Space Mono', monospace", whiteSpace: "nowrap" }}>

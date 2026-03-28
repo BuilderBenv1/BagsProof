@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { generateCreatorProfile, scoreCreator, DEMO_WALLETS } from "../lib/scoring";
+import { isVerified, getStakeStatus, getMintedNFT, PROOF_TOKEN } from "../lib/proof-token";
 
 function ScoreRing({ score, tier, size = 120 }) {
   const radius = (size - 16) / 2;
@@ -490,6 +491,12 @@ export default function BagsTrustScore() {
             <Link href="/embed" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'Space Mono', monospace" }}>
               Embed Badge
             </Link>
+            <Link href="/stake" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(171,56,255,0.1)", border: "1px solid rgba(171,56,255,0.25)", color: "#ab38ff", fontSize: 12, fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>
+              Stake {PROOF_TOKEN.symbol}
+            </Link>
+            <Link href="/mint" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(171,56,255,0.06)", border: "1px solid rgba(171,56,255,0.15)", color: "rgba(171,56,255,0.7)", fontSize: 12, fontFamily: "'Space Mono', monospace" }}>
+              Mint NFT
+            </Link>
             <Link href="/api-docs" style={{ textDecoration: "none", padding: "8px 16px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "'Space Mono', monospace" }}>
               API Docs
             </Link>
@@ -707,6 +714,22 @@ export default function BagsTrustScore() {
                           }}>LIVE DATA</span>
                         </div>
                       )}
+                      {isVerified(activeResult.profile.wallet) && (() => {
+                        const stake = getStakeStatus(activeResult.profile.wallet);
+                        return (
+                          <div style={{
+                            display: "inline-flex", alignItems: "center", gap: 5,
+                            padding: "4px 10px", borderRadius: 5,
+                            background: `${stake?.tier?.color || "#ab38ff"}12`,
+                            border: `1px solid ${stake?.tier?.color || "#ab38ff"}30`,
+                          }}>
+                            <span style={{ fontSize: 10 }}>&#128737;</span>
+                            <span style={{ fontSize: 10, color: stake?.tier?.color || "#ab38ff", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em", fontWeight: 700 }}>
+                              {stake?.tier?.label || "VERIFIED"}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div
                       style={{
