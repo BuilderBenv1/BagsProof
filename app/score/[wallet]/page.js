@@ -1,5 +1,6 @@
 import { generateCreatorProfile, scoreCreator } from "../../../lib/scoring";
 import { DEMO_VERIFIED } from "../../../lib/proof-token";
+import { supabase } from "../../../lib/supabase";
 import Link from "next/link";
 
 export async function generateMetadata({ params }) {
@@ -45,6 +46,21 @@ export default async function ScorePage({ params }) {
   const { score, tier, signals } = result;
   const signalList = Object.values(signals);
 
+  // Check verification from Supabase (server-side)
+  let walletVerified = DEMO_VERIFIED.includes(wallet);
+  let stakeColor = "#ab38ff";
+  let stakeLabel = "VERIFIED";
+  if (!walletVerified) {
+    try {
+      const { data } = await supabase.from("stakes").select("tier_label, tier_color").eq("wallet", wallet).single();
+      if (data) {
+        walletVerified = true;
+        stakeColor = data.tier_color || "#ab38ff";
+        stakeLabel = data.tier_label || "VERIFIED";
+      }
+    } catch {}
+  }
+
   const shareText = encodeURIComponent(
     `My BagsProof trust score: ${tier.label} ${score}/100\n\nCheck any Bags.fm creator:\nbagsproof.sh/score/${wallet}`
   );
@@ -82,10 +98,10 @@ export default async function ScorePage({ params }) {
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: tier.color, boxShadow: `0 0 6px ${tier.color}` }} />
                 <span style={{ fontSize: 11, fontWeight: 700, color: tier.color, letterSpacing: "0.12em", fontFamily: "'Space Mono', monospace" }}>TRUST TIER {tier.label}</span>
               </div>
-              {DEMO_VERIFIED.includes(wallet) && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 5, background: "rgba(171,56,255,0.1)", border: "1px solid rgba(171,56,255,0.25)", marginBottom: 8 }}>
+              {walletVerified && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 5, background: `${stakeColor}12`, border: `1px solid ${stakeColor}30`, marginBottom: 8 }}>
                   <span style={{ fontSize: 10 }}>&#128737;</span>
-                  <span style={{ fontSize: 10, color: "#ab38ff", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em", fontWeight: 700 }}>VERIFIED</span>
+                  <span style={{ fontSize: 10, color: stakeColor, fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em", fontWeight: 700 }}>{stakeLabel}</span>
                 </div>
               )}
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>

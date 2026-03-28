@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { generateLeaderboard } from "../../lib/scoring";
-import { isVerified } from "../../lib/proof-token";
+import { DEMO_VERIFIED } from "../../lib/proof-token";
+import { supabase } from "../../lib/supabase";
 import Link from "next/link";
 
 function RankBadge({ rank }) {
@@ -26,11 +27,18 @@ export default function LeaderboardPage() {
   const [entries, setEntries] = useState([]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [verifiedWallets, setVerifiedWallets] = useState(new Set(DEMO_VERIFIED));
 
   useEffect(() => {
     document.title = "Creator Leaderboard | BagsProof";
     setEntries(generateLeaderboard(50));
     setTimeout(() => setLoaded(true), 50);
+    // Load verified wallets from Supabase
+    supabase.from("stakes").select("wallet").then(({ data }) => {
+      if (data) {
+        setVerifiedWallets(new Set([...DEMO_VERIFIED, ...data.map((r) => r.wallet)]));
+      }
+    });
   }, []);
 
   return (
@@ -94,7 +102,7 @@ export default function LeaderboardPage() {
                   <div><RankBadge rank={entry.rank} /></div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: isTop3 ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.7)", fontFamily: "'Space Mono', monospace", overflow: "hidden", whiteSpace: "nowrap", paddingRight: 12 }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{entry.wallet.slice(0, 4)}...{entry.wallet.slice(-4)}</span>
-                    {isVerified(entry.wallet) && <span style={{ fontSize: 10, color: "#ab38ff", flexShrink: 0 }} title="Verified">&#128737;</span>}
+                    {verifiedWallets.has(entry.wallet) && <span style={{ fontSize: 10, color: "#ab38ff", flexShrink: 0 }} title="Verified">&#128737;</span>}
                   </div>
                   <div>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 5, border: `1px solid ${entry.tier.color}40`, background: entry.tier.bg, fontSize: 11, fontWeight: 700, color: entry.tier.color, letterSpacing: "0.1em", fontFamily: "'Space Mono', monospace", whiteSpace: "nowrap" }}>

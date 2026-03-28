@@ -88,7 +88,7 @@ export default function MintPage() {
       setBalance(await getProofBalance(w));
       const profile = generateCreatorProfile(w);
       setScoreResult(scoreCreator(profile));
-      setExistingNFT(getMintedNFT(w));
+      setExistingNFT(await getMintedNFT(w));
     } catch (err) { console.error(err); }
   };
 

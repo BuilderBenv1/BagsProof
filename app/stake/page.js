@@ -30,7 +30,7 @@ export default function StakePage() {
       const w = resp.publicKey.toString();
       setWallet(w);
       setBalance(await getProofBalance(w));
-      setStakeStatus(getStakeStatus(w));
+      setStakeStatus(await getStakeStatus(w));
       const profile = generateCreatorProfile(w);
       setScoreResult(scoreCreator(profile));
     } catch (err) { console.error(err); }

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { generateCreatorProfile, scoreCreator, DEMO_WALLETS } from "../lib/scoring";
-import { isVerified, getStakeStatus, getMintedNFT, PROOF_TOKEN } from "../lib/proof-token";
+import { getStakeStatus, PROOF_TOKEN } from "../lib/proof-token";
 
 function ScoreRing({ score, tier, size = 120 }) {
   const radius = (size - 16) / 2;
@@ -297,6 +297,7 @@ export default function BagsTrustScore() {
   const [activeResult, setActiveResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [demoResults, setDemoResults] = useState([]);
+  const [verifiedStake, setVerifiedStake] = useState(null);
   const inputRef = useRef();
 
   useEffect(() => {
@@ -344,6 +345,9 @@ export default function BagsTrustScore() {
       setActiveResult({ ...scoreCreator(profile), isLive: false });
     } finally {
       setLoading(false);
+      // Check verification status from Supabase
+      const w = inputWallet.trim().startsWith("@") ? inputWallet.trim() : input;
+      getStakeStatus(w).then(setVerifiedStake).catch(() => setVerifiedStake(null));
     }
   };
 
@@ -714,22 +718,19 @@ export default function BagsTrustScore() {
                           }}>LIVE DATA</span>
                         </div>
                       )}
-                      {isVerified(activeResult.profile.wallet) && (() => {
-                        const stake = getStakeStatus(activeResult.profile.wallet);
-                        return (
-                          <div style={{
-                            display: "inline-flex", alignItems: "center", gap: 5,
-                            padding: "4px 10px", borderRadius: 5,
-                            background: `${stake?.tier?.color || "#ab38ff"}12`,
-                            border: `1px solid ${stake?.tier?.color || "#ab38ff"}30`,
-                          }}>
-                            <span style={{ fontSize: 10 }}>&#128737;</span>
-                            <span style={{ fontSize: 10, color: stake?.tier?.color || "#ab38ff", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em", fontWeight: 700 }}>
-                              {stake?.tier?.label || "VERIFIED"}
-                            </span>
-                          </div>
-                        );
-                      })()}
+                      {verifiedStake && verifiedStake.isStaked && (
+                        <div style={{
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          padding: "4px 10px", borderRadius: 5,
+                          background: `${verifiedStake.tier?.color || "#ab38ff"}12`,
+                          border: `1px solid ${verifiedStake.tier?.color || "#ab38ff"}30`,
+                        }}>
+                          <span style={{ fontSize: 10 }}>&#128737;</span>
+                          <span style={{ fontSize: 10, color: verifiedStake.tier?.color || "#ab38ff", fontFamily: "'Space Mono', monospace", letterSpacing: "0.1em", fontWeight: 700 }}>
+                            {verifiedStake.tier?.label || "VERIFIED"}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div
                       style={{
