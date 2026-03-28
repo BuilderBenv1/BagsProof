@@ -85,7 +85,7 @@ export default function MintPage() {
       const resp = await provider.connect();
       const w = resp.publicKey.toString();
       setWallet(w);
-      setBalance(getProofBalance(w));
+      setBalance(await getProofBalance(w));
       const profile = generateCreatorProfile(w);
       setScoreResult(scoreCreator(profile));
       setExistingNFT(getMintedNFT(w));
@@ -95,18 +95,14 @@ export default function MintPage() {
   const handleMint = async () => {
     if (!wallet || !scoreResult) return;
     try {
-      setStep("metadata");
-      await new Promise((r) => setTimeout(r, 1200));
-      setStep("uploading");
-      await new Promise((r) => setTimeout(r, 1400));
       setStep("minting");
       const result = await mintScoreNFT(wallet, scoreResult);
       setMintResult(result);
-      setBalance(getProofBalance(wallet));
+      setBalance(await getProofBalance(wallet));
       setExistingNFT(result.nft);
       setStep("success");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Transaction rejected");
       setStep("error");
     }
   };

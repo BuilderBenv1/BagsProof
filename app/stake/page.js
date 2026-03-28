@@ -19,7 +19,7 @@ export default function StakePage() {
   const [scoreResult, setScoreResult] = useState(null);
 
   useEffect(() => {
-    document.title = "Stake $PROOF | BagsProof";
+    document.title = "Stake $BAGSPROOF | BagsProof";
   }, []);
 
   const connectWallet = async () => {
@@ -29,7 +29,7 @@ export default function StakePage() {
       const resp = await provider.connect();
       const w = resp.publicKey.toString();
       setWallet(w);
-      setBalance(getProofBalance(w));
+      setBalance(await getProofBalance(w));
       setStakeStatus(getStakeStatus(w));
       const profile = generateCreatorProfile(w);
       setScoreResult(scoreCreator(profile));
@@ -38,17 +38,15 @@ export default function StakePage() {
 
   const handleStake = async () => {
     if (!wallet) return;
-    setStep("confirming");
-    await new Promise((r) => setTimeout(r, 1500));
     setStep("staking");
     try {
       const result = await stakeTokens(wallet, stakeAmount);
       setTxSig(result.signature);
       setStakeStatus(result.stake);
-      setBalance(getProofBalance(wallet));
+      setBalance(await getProofBalance(wallet));
       setStep("success");
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Transaction rejected");
       setStep("error");
     }
   };
@@ -59,7 +57,7 @@ export default function StakePage() {
     try {
       await unstakeTokens(wallet);
       setStakeStatus(null);
-      setBalance(getProofBalance(wallet));
+      setBalance(await getProofBalance(wallet));
       setStep("idle");
     } catch (err) {
       setError(err.message);
